@@ -31,7 +31,7 @@ def N.add (x y: N): N :=
 
 infix:0 " + " => N.add
 
-theorem N.add.associative: forall x y z: N, (x + (y + z)) ≃ ((x + y) + z) := sorry
+theorem N.add.assoc: forall x y z: N, (x + (y + z)) ≃ ((x + y) + z) := sorry
 
 theorem N.add.zero: forall x: N, (x + N.zero) ≃ x := sorry
 
@@ -46,7 +46,7 @@ infix:0 " * " => N.mul
 
 def N.one: N := N.next N.zero
 
-theorem N.mul.associative: forall x y z: N, (x * (y * z)) ≃ ((x * y) * z) := sorry
+theorem N.mul.assoc: forall x y z: N, (x * (y * z)) ≃ ((x * y) * z) := sorry
 
 theorem N.mul.one: forall x: N, (x * N.one) ≃ x := sorry
 
@@ -108,9 +108,9 @@ def Q.zero: Q := Z.toQ Z.zero
 
 def Q.one: Q := Z.toQ Z.one
 
-theorem Q.add_associative: forall x y z: Q, (x + (y + z)) ≃ ((x + y) + z) := sorry
+theorem Q.add_assoc: forall x y z: Q, (x + (y + z)) ≃ ((x + y) + z) := sorry
 
-theorem Q.mul_associative: forall x y z: Q, (x + (y + z)) ≃ ((x + y) + z) := sorry
+theorem Q.mul_assoc: forall x y z: Q, (x + (y + z)) ≃ ((x + y) + z) := sorry
 
 theorem Q.add_inverse: forall x: Q, ¬ (x ≃ Q.zero) -> ((x * (Q.inv x)) ≃ Q.one) := sorry
 
@@ -120,10 +120,10 @@ structure Field where
   mul: element -> element -> element
   zero: element
   one: element
-  add_associate (x y z: element): add (add x y) z = add x (add y z)
-  mul_associate (x y z: element): mul (mul x y) z = mul x (mul y z)
-  add_commute (x y: element): add x y = add y x
-  mul_commute (x y: element): mul x y = mul y x
+  add_assoc (x y z: element): add (add x y) z = add x (add y z)
+  mul_assoc (x y z: element): mul (mul x y) z = mul x (mul y z)
+  add_comm (x y: element): add x y = add y x
+  mul_comm (x y: element): mul x y = mul y x
   zero_identity (x: element): add x zero = x
   one_identity (x: element): mul x one = x
   negative (x: element): element
@@ -138,10 +138,10 @@ example: Field := {
   mul := Q.mul
   zero := Q.zero
   one := Q.one
-  add_associate := sorry
-  mul_associate := sorry
-  add_commute := sorry
-  mul_commute := sorry
+  add_assoc := sorry
+  mul_assoc := sorry
+  add_comm := sorry
+  mul_comm := sorry
   zero_identity := sorry
   one_identity := sorry
   negative := sorry

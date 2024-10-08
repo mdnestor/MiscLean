@@ -1,5 +1,6 @@
 
-/- field axioms: brute force version -/
+/- field axioms -/
+
 structure Field where
   element: Type
   add: element -> element -> element
@@ -20,13 +21,19 @@ structure Field where
 
 /- some elementary properties of a field -/
 example (F: Field) (x: F.element): F.mul x F.zero = F.zero := sorry
+
 example (F: Field) (x: F.element): F.negative x = F.mul (F.negative F.one) x := sorry
+
 example (F: Field) (x y: F.element): F.mul x y = F.zero -> (x = F.zero) ∨ (y = F.zero) := sorry
+
 example (F: Field): F.negative F.zero = F.zero := sorry
-/- to even state the next theorem, we need the lemma that 0 ≠ 1 in a field -/
+
 theorem one_neq_zero (F: Field): F.one ≠ F.zero := sorry
+
 example (F: Field): F.inverse F.one (one_neq_zero F) = F.one := sorry
+
 example (F: Field) (x: F.element): F.negative (F.negative x) = x := sorry
-/- similar case here -/
+
 theorem inverse_nonzero (F: Field) (x: F.element) (h: x ≠ F.zero): F.inverse x h ≠ F.zero := sorry
+
 example (F: Field) (x: F.element) (h: x ≠ F.zero): F.inverse (F.inverse x h) (inverse_nonzero F x h) = x := sorry

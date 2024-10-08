@@ -1,4 +1,6 @@
 /-
+Formalizing logic puzzles
+
 https://en.wikipedia.org/wiki/Knights_and_Knaves
 
 You come across three strangers, A, B, and C, each of whom is either a knight, who always tells the truth, or a knave, who always lies.

@@ -1,4 +1,4 @@
-
+-- formalizing free graph
 structure Category where
   obj: Type
   hom: obj -> obj -> Type

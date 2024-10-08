@@ -1,7 +1,9 @@
+
+-- Knaster Tarski fixed point theorem
+
 -- https://en.wikipedia.org/wiki/Knaster%E2%80%93Tarski_theorem
 -- https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Order/FixedPoints.lean
 --
-
 -- TODO: type class inference?
 
 class Poset (X: Type) where

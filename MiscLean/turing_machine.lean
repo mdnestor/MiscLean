@@ -1,4 +1,4 @@
-structure TuringMachine where /- generalizes to tapes besides ℤ obviously 💅 -/
+structure TuringMachine where /- generalizes to tapes besides ℤ 💅 -/
   tape: Type
   symbol: Type
   state: Type

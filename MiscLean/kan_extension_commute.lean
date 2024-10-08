@@ -1,3 +1,4 @@
+
 import Mathlib.CategoryTheory.Limits.Comma
 import Mathlib.CategoryTheory.Functor.KanExtension.Adjunction
 
@@ -14,7 +15,7 @@ class ISetHom (I1 I2: ISet) where
 
 def ISetId (I: ISet): ISetHom I I := {
   basemap := id
-  fibermap := fun _ a => a 
+  fibermap := fun _ a => a
 }
 
 def ISetComp {I1 I2 I3: ISet} (h1: ISetHom I1 I2) (h2: ISetHom I2 I3): ISetHom I1 I3 := {

@@ -1,5 +1,5 @@
+-- fields and vector spaces
 
-/- field axioms: brute force version -/
 structure Field where
   element: Type
   add: element -> element -> element

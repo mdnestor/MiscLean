@@ -1,4 +1,3 @@
-/- the first good script I wrote -/
 
 structure Monoid where
   elem: Type

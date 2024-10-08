@@ -1,17 +1,20 @@
 /-
-Some "easy" theorems about even numbers:
+Some easy theorems about even numbers:
 - the sum of two even numbers is even
 - the product of two even numbers is even
 - a number is even iff. its square is even
 Makes generous use of calculational proofs, i.e. the `calc` tactic.
 -/
 
+-- definition of even
 def even (n: Nat): Prop :=
   ∃ k: Nat, 2 * k = n
 
+-- theorem: a number is not even iff. it can be written as 2*k + 1
 theorem odd (n: Nat): (∃ k: Nat, n = 2*k + 1) ↔ ¬(even n) := by
   sorry
 
+-- if m and n are both even then m + n is even
 theorem sum_of_even_is_even (m n: Nat) (h0: even m) (h1: even n): even (m + n) := by
   obtain ⟨k0, h2⟩ := h0
   obtain ⟨k1, h3⟩ := h1
@@ -20,6 +23,7 @@ theorem sum_of_even_is_even (m n: Nat) (h0: even m) (h1: even n): even (m + n) :
     2 * (k0 + k1) = 2 * k0 + 2 * k1 := by rw [Nat.left_distrib]
                 _ = m + n           := by rw [h2, h3]
 
+-- if m and n are both even then m*n is even
 theorem product_of_even_is_even (m n: Nat) (h0: even m) (h1: even n): even (m * n) := by
   obtain ⟨k0, h2⟩ := h0
   obtain ⟨k1, h3⟩ := h1
@@ -29,13 +33,13 @@ theorem product_of_even_is_even (m n: Nat) (h0: even m) (h1: even n): even (m * 
                     _ = (2 * k0) * (2 * k1) := by repeat rw [Nat.mul_assoc]
                     _ = m * n               := by rw [h2, h3]
 
--- helper.. probably redundant
 theorem contrapositive (P Q: Prop): P → Q ↔ (¬ Q → ¬ P) := by
   apply Iff.intro
   exact mt -- modus tollens
   intro h p
   exact Classical.not_not.mp (mt h (not_not_intro p))
 
+-- n is even if and only if n^2 is even
 theorem even_iff_square_even (n: Nat): even n ↔ even (n^2) := by
   apply Iff.intro
   -- forward

@@ -1,5 +1,5 @@
 /-
-States the Kahn-Kalai conjecture https://arxiv.org/abs/2203.17207
+States (but does not prove) the Kahn-Kalai conjecture https://arxiv.org/abs/2203.17207
 -/
 
 import Mathlib.Data.Finset.Basic

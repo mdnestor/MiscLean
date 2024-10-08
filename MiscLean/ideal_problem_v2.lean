@@ -1,3 +1,5 @@
+-- challenge problem
+
 def subset (X: Type): Type := X -> Prop
 def subset_of {X: Type} (S1 S2: subset X): Prop := forall x: X, S1 x -> S2 x
 def const {X Y: Type} (y: Y): X -> Y := fun _ => y

@@ -1,6 +1,6 @@
--- defines the free monoid over a type
--- we show any function between types extends to a homomorphism between free monoids, namely `map`
--- we also show the free monoid over the unit type is isomorphic to the monoid of natural numbers
+-- defines the free monoid over a type as the type of lists of that type
+-- shows that `List.map` is a monoid homomorphism between free monoids
+-- also shows the free monoid over the unit type is isomorphic to the natural numbers
 
 -- definition of a monoid
 structure Monoid (X: Type) where

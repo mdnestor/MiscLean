@@ -1,7 +1,16 @@
 
-Collection of miscellaneous Lean code.
+Contains miscellaneous Lean 4 code.
 
-# Resources
+# How to build
+
+Requires [Lake](https://github.com/leanprover/lake).
+
+```sh
+git clone https://github.com/mdnestor/MiscLean
+cd MiscLean
+lake build
+```
+# Learning resources
 
 - Lean homepage: [lean-lang.org](https://lean-lang.org/)
 - Lean community homepage: [leanprover-community.github.io](https://leanprover-community.github.io/)

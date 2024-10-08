@@ -1,14 +1,15 @@
+-- point set topology
+
 def subset (X: Type): Type := X -> Prop
 def empty (X: Type): subset X := fun _ => False
 def whole (X: Type): subset X := fun _ => True
 def cup {X: Type} (A B: subset X): subset X := fun x => A x ∨ B x
 def cap {X: Type} (A B: subset X): subset X := fun x => A x ∧ B x
-def bigcup_old {X I: Type} (A: I -> subset X): subset X := fun x => exists i: I, (A i) x
-def bigcap_old {X I: Type} (A: I -> subset X): subset X := fun x => forall i: I, (A i) x
 def subset_of {X: Type} (A B: subset X): Prop := forall x: X, A x -> B x
 def image {X Y: Type} (f: X -> Y) (A: subset X): subset Y := fun y => exists x: X, A x ∧ f x = y
 def preimage {X Y: Type} (f: X -> Y) (B: subset Y): subset X := fun x => B (f x)
 
+-- neighborhood axiomatization of topological spaces
 structure TopologicalSpaceV0 where
   point: Type
   neighborhoods: point -> subset (subset point)

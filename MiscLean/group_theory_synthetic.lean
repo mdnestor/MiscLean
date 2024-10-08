@@ -1,3 +1,4 @@
+-- experiment with synthetic group theory
 axiom Group: Type
 
 axiom Homo (A B: Group): Type

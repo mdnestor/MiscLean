@@ -2,11 +2,11 @@
 
 Theorems about finite types
 
-This is similar to Mathlib.Data.Finite.Defs
+Similar to Mathlib.Data.Finite.Defs
 
 -/
 
--- A type is finite if there exists an exhaustive list of its terms
+-- define a type is finite if there exists an exhaustive list of its terms
 def finite (X: Type): Prop :=
   ∃ L: List X, ∀ x: X, x ∈ L
 
@@ -51,13 +51,16 @@ theorem func_finite (X Y: Type): finite X ∧ finite Y → finite (X → Y) := b
 theorem fin_finite (n: Nat): finite (Fin n) := by
   sorry
 
+-- the type of natural numbers is finite
 theorem nat_infinite: ¬ finite Nat := by
   -- idea: any list of natural numbers has a maximum m, so m + 1 is not a member
   sorry
 
+-- the type Bool = {true, false} is finite
 theorem bool_finite: finite Bool := by
   exists [true, false]
 
+-- the type of Propositions, including but not limited to {True, False} is infinite
 theorem prop_infinite: ¬ finite Prop :=
   -- no clue!
   -- maybe we can form the proposition n = n for every natural number n?
