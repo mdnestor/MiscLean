@@ -124,13 +124,22 @@ def functor_isomorphic {C D: Category m n} (f g: functor C D): Prop :=
   @isomorphic m n (expCategory C D) f g
 
 def YonedaLeft (C: Category 1 1): functor (prodCategory C (expCategory C Set)) Set := {
-  func0 := fun x => NatTrans (HomFunctor C x.1) x.2
-  func1 := fun f => by
-    let f1 := f.1
-    let f2 := f.2
-    simp
-    intro η
-    sorry
+  func0 := fun ⟨x1, x2⟩ => NatTrans (HomFunctor C x1) x2
+  func1 := fun f η => {
+      component := fun x h => (f.2.component x) ((η.component x) (C.comp f.1 h))
+      ok := by
+        intro a b g
+        --simp [HomFunctor,Set]
+        --ext S
+        --simp [HomSet] at S
+        simp at η
+        simp
+
+
+        sorry
+
+
+  }
   id_preserving := by
     intro
     simp [Set]
