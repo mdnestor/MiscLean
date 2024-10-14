@@ -1,9 +1,6 @@
 
--- categories of nets https://arxiv.org/pdf/2101.04238
-
 import Mathlib.Data.Multiset.Basic
-import Mathlib.Logic.Function.Defs
-import Mathlib.CategoryTheory.Category.Basic
+import Mathlib.CategoryTheory.Monoidal.Category
 
 open CategoryTheory
 
@@ -30,20 +27,8 @@ def PreNet.id (P: PreNet): PreNet.map P P := {
 def PreNet.comp {P1 P2 P3: PreNet} (f1: PreNet.map P1 P2) (f2: PreNet.map P2 P3): PreNet.map P1 P3 := {
   smap := f2.smap ∘ f1.smap
   tmap := f2.tmap ∘ f1.tmap
-  h1 := by
-    rw [←Function.comp.assoc]
-    rw [←f2.h1]
-    rw [Function.comp.assoc]
-    rw [←f1.h1]
-    rw [←Function.comp.assoc]
-    rw [List.map_comp_map] -- diagram chasing is less fun
-  h2 := by
-    rw [←Function.comp.assoc]
-    rw [←f2.h2]
-    rw [Function.comp.assoc]
-    rw [←f1.h2]
-    rw [←Function.comp.assoc]
-    rw [List.map_comp_map]
+  h1 := by rw [←Function.comp.assoc, ←f2.h1, Function.comp.assoc, ←f1.h1, ←Function.comp.assoc, List.map_comp_map]
+  h2 := by rw [←Function.comp.assoc, ←f2.h2, Function.comp.assoc, ←f1.h2, ←Function.comp.assoc, List.map_comp_map]
 }
 
 -- prenets form a category
@@ -86,23 +71,69 @@ lemma Multiset.map_comp_map: Multiset.map f ∘ Multiset.map g = Multiset.map (f
 def PetriNet.comp {P1 P2 P3: PetriNet} (f1: PetriNet.map P1 P2) (f2: PetriNet.map P2 P3): PetriNet.map P1 P3 := {
   smap := f2.smap ∘ f1.smap
   tmap := f2.tmap ∘ f1.tmap
-  h1 := by
-    rw [←Function.comp.assoc]
-    rw [←f2.h1]
-    rw [Function.comp.assoc]
-    rw [←f1.h1]
-    rw [←Function.comp.assoc]
-    rw [←Multiset.map_comp_map]
-  h2 := by
-    rw [←Function.comp.assoc]
-    rw [←f2.h2]
-    rw [Function.comp.assoc]
-    rw [←f1.h2]
-    rw [←Function.comp.assoc]
-    rw [←Multiset.map_comp_map]
+  h1 := by rw [←Function.comp.assoc, ←f2.h1, Function.comp.assoc, ←f1.h1, ←Function.comp.assoc, ←Multiset.map_comp_map]
+  h2 := by rw [←Function.comp.assoc, ←f2.h2, Function.comp.assoc, ←f1.h2, ←Function.comp.assoc, ←Multiset.map_comp_map]
 }
 
-instance: Category PetriNet where
+def Petri: Category PetriNet where
   Hom := PetriNet.map
   id := PetriNet.id
   comp := PetriNet.comp
+
+structure DepPetriNet where
+  specie : Type
+  transmatrix : Multiset specie → Multiset specie → Type
+
+/-
+axiom Path {P: DepPetriNet} (x y: Multiset P.specie): Type
+
+axiom Path.empty {P: DepPetriNet} (x: Multiset P.specie): Path x x := Path.nil
+
+axiom Path.trans {P: DepPetriNet} {x y: Multiset P.specie} (t : P.transmatrix x y): Path x y :=
+  Path.cons t x y
+
+axiom Path.empty {P: DepPetriNet} (x: Multiset P.specie): Path x x
+
+axiom Path.trans {P: DepPetriNet} {x y: Multiset P.specie} (t : P.transmatrix x y): Path x y
+
+axiom Path.compose {P: DepPetriNet} {x y z: Multiset P.specie} (p: Path x y) (q: Path y z): Path x z
+
+axiom Path.sum {P : DepPetriNet} {x x' y y' : Multiset P.specie} (p : Path x y) (q : Path x' y') : Path (Multiset.add x x') (Multiset.add y y')
+
+axiom Path.sum.commutes {P : DepPetriNet}: forall x x' y y': Multiset P.specie, forall p : Path x y, forall p' : Path x' y', Path.sum p p' = Path.sum p' p
+
+axiom Path.interchange {P : DepPetriNet}: forall x x' y y' z z' : Multiset P.specie, forall p : Path x y, forall q: Path y z, forall p' : Path x' y', forall q' : Path y' z', Path.sum (Path.compose p q) (Path.compose p' q') = Path.compose (Path.sum p p') (Path.sum q q')
+
+axiom Path.compose.empty_left {P: DepPetriNet}: forall x y: Multiset P.specie, forall p: Path x y, Path.compose (Path.empty x) p = p
+
+axiom Path.compose.empty_right {P: DepPetriNet}: forall x y: Multiset P.specie, forall p: Path x y, Path.compose p (Path.empty y) = p
+-/
+
+inductive Path {P : DepPetriNet}: Multiset P.specie → Multiset P.specie → Type where
+  | id (x : Multiset P.specie): Path x x
+  | unit (t: P.transmatrix x y): Path x y
+  | comp (p: Path x y) (q: Path y z): Path x z
+  | tensor (p : Path x1 y1) (q : Path x2 y2): Path (x1 + x2) (y1 + y2)
+
+open CategoryTheory
+
+def FreeGraph (P : DepPetriNet): Category (Multiset P.specie) := {
+  Hom := Path
+  id := Path.id
+  comp := Path.comp
+  assoc := sorry
+  id_comp := sorry
+  comp_id := sorry
+}
+
+instance (P: DepPetriNet): Category (Multiset P.specie) := FreeGraph P
+
+example (P: DepPetriNet): MonoidalCategory (Multiset P.specie) := {
+  tensorObj := Multiset.add
+  whiskerLeft := sorry
+  whiskerRight := sorry
+  tensorUnit := {}
+  associator := sorry
+  leftUnitor := sorry
+  rightUnitor := sorry
+}
