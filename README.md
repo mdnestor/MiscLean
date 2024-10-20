@@ -24,3 +24,4 @@ lake build
 - Books
   - [Functional Programming in Lean](https://lean-lang.org/functional_programming_in_lean/)
   - [Theorem Proving in Lean 4](https://leanprover.github.io/theorem_proving_in_lean4/)
+  - [Metaprogramming in Lean 4](https://leanprover-community.github.io/lean4-metaprogramming-book/)
