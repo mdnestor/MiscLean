@@ -40,3 +40,19 @@ theorem surjective_comp {X Y Z: Type} {f: X → Y} {g: Y → Z}
   exists x
   simp [hx, hy]
 ```
+
+Bonus: proof of Cantor's theorem
+
+```lean
+def Set (X: Type): Type :=
+  X → Prop
+
+theorem cantor (f: X → Set X): ¬ surjective f := by
+  intro h
+  let S := fun x => ¬ (f x) x
+  obtain ⟨z, hz⟩ := h S
+  have: ∀ x: X, S x ↔ ¬ (f x) x := by simp
+  have := this z
+  rw [hz] at this
+  simp_all
+```
