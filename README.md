@@ -32,7 +32,8 @@ Sample code: proof that composition of surjective functions is surjective.
 def surjective {X Y: Type} (f: X → Y): Prop :=
   ∀ y: Y, ∃ x: X, f x = y
 
-theorem surjective_comp {X Y Z: Type} {f: X → Y} {g: Y → Z} (hf: surjective f) (hg: surjective g): surjective (g ∘ f) := by
+theorem surjective_comp {X Y Z: Type} {f: X → Y} {g: Y → Z}
+  (hf: surjective f) (hg: surjective g): surjective (g ∘ f) := by
   intro z
   obtain ⟨y, hy⟩ := hg z
   obtain ⟨x, hx⟩ := hf y
