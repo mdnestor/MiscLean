@@ -32,11 +32,11 @@ def Pref (P S: Type): Type :=
 
 some definitions:
 
-1. a strategy profile π2 is called a "Pareto improvement" over π1 if every player prefers π2 tp π1.
+1. a strategy profile π' is called a "Pareto improvement" over π if every player prefers π' over π.
 
 2. a strategy profile π is Pareto-optimal if there exists no strict Pareto improvement.
 
-3. a zero sum game is one in which if player i strictly prefers π2 tp π1, then player j strictly prefers π1 to π2.
+3. a zero sum game is one in which if player i strictly prefers π' over π, then player j strictly prefers π over π'.
 
 -/
 
