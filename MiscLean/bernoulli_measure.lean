@@ -1,4 +1,5 @@
 import Mathlib.Probability.ProductMeasure
+import Mathlib.Dynamics.Ergodic.MeasurePreserving
 
 open MeasureTheory
 
