@@ -38,7 +38,7 @@ def strictly_positive (m: Measure X): Prop :=
   ∀ U, IsOpen U → U.Nonempty → m U ≠ 0
 
 theorem negligible_dense_compl_iff (m: Measure X): negligible_dense_compl m ↔ strictly_positive m := by
-  constructor
+  apply Iff.intro
   . intro h U U_open U_nonempty
     contrapose h
     simp [negligible_dense_compl]
