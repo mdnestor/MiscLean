@@ -2,6 +2,12 @@
 
 This file shows a Borel measure is strictly positive iff. it has this property that the complement of every neglible set is dense.
 
+As a corollary, if f and g are two continuous functions X → Y where
+- X has a strictly positive measure m,
+- f(x) = g(x) for all x in a measurable set D whose complement is negligible wrt. m,
+- Y is a Hausdorff (T2) space.
+Then f = g.
+
 Proof outline:
 Let (X, T) be a topological space, B = sigma(T) the smallest sigma algebra containing T, so (X, B) is the corresponding Borel space.
 Let m: B -> [0, infty] be a measure on (X, B).
@@ -65,16 +71,7 @@ theorem negligible_dense_compl_iff (m: Measure X): negligible_dense_compl m ↔ 
     have: m E ≠ 0 := Ne.symm (ne_of_lt this)
     exact this hE2
 
-/-
-
-Corollary: suppose f and g are two continuous functions X → Y where
-- X has a strictly positive measure m,
-- f(x) = g(x) for all x in a measurable set D whose complement is negligible wrt. m,
-- Y is a Hausdorff (T2) space.
-Then f = g.
-
--/
-
+-- corollary
 example {X: Type u} {Y: Type v} [TopologicalSpace X] [TopologicalSpace Y] [T2Space Y] {f g: X → Y} {hf: Continuous f} {hg: Continuous g} {D: Set X} {hD0: MeasurableSet D} {hD1: ∀ x ∈ D, f x = g x} {m: Measure X} {hm: strictly_positive m} {hD2: m Dᶜ = 0}: f = g := by
   have: Dense D := by
     rw [←compl_compl D]
