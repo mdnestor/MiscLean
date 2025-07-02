@@ -1,4 +1,18 @@
--- a Borel measure is strictly positive iff. it has this property that the complement of every neglible set is dense.
+/-
+This file shows a Borel measure is strictly positive iff. it has this property that the complement of every neglible set is dense.
+
+Proof outline:
+Let (X, T) be a topological space, B = sigma(T) the smallest sigma algebra containing T, so (X, B) is the corresponding Borel space.
+Let m: B -> [0, infty] be a measure on (X, B).
+
+m is called 'strictly positive' if m(U) > 0 for all nonempty open sets U.
+We will say m has the 'negligible dense complement' property if m(E) = 0 implies E^c is dense for all measurable E.
+
+Claim: m is strictly positive iff. it has negligible dense complement property.
+Proof:
+1. if m is strictly positive and m(E) = 0, suppose by contradiction E^c is not dense. Then there exists open U contained in E, so that m(E) >= m(U) > 0, contradiction.
+2. if m has the negligible dense complement property, and U is any open set, then U^c is not dense, so by contrapositive of assumption then m(U) > 0.
+-/
 
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
