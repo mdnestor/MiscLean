@@ -26,6 +26,7 @@ import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
 open MeasureTheory
 
+-- throughout, X is equipped with a topology
 variable {X: Type u} [TopologicalSpace X]
 
 instance: MeasurableSpace X :=
