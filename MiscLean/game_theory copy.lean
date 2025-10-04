@@ -10,18 +10,8 @@ def Prefer (X: Type): Type :=
 def reflexive {X: Type} (prefer: Prefer X): Prop :=
   ∀ x, prefer x x
 
-def irreflexive {X: Type} (prefer: Prefer X): Prop :=
-  ∀ x, ¬ prefer x x
-
-def transitive {X: Type} (prefer: Prefer X): Prop :=
-  ∀ x y z, prefer x y → prefer y z → prefer x z
-
 def antisymmetric {X: Type} (prefer:  Prefer X): Prop :=
   ∀ x y, prefer x y → prefer y x → x = y
-
-
-
-section NormalFormGames
 
 /-
 
@@ -42,101 +32,83 @@ Note the 'play' function wraps what is usually called the 'payoff matrix'.
 
 -/
 
-class UtilityGame where
-  player  : Type
-  strategy: Type
-  utility : Type
-  play: (player → strategy) → (player → utility)
-  prefer: Prefer utility
+class UtilityGame (P S U: Type) where
+  play: (P → S) → (P → U)
+  prefer: Prefer U
 
 -- A generalization: instead of each player getting a utility,
 -- the game has some 'outcome' and the players have a preference on outcomes.
 
-class OutcomeGame where
-  player  : Type
-  strategy: Type
-  outcome : Type
-  play: (player → strategy) → outcome
-  prefer:  player → Prefer outcome
+class OutcomeGame (P S O: Type) where
+  play: (P → S) → O
+  prefer:  P → Prefer O
+
+variable {P S O U: Type} [DecidableEq P]
 
 -- Every utility game is an outcome game where the outcomes are utility assignments
 -- and players prefer outcomes where they get higher utility.
 
-def UtilityGame.toOutcomeGame (game: UtilityGame): OutcomeGame := {
-  player   := player
-  strategy := strategy
-  outcome  := player → utility
-  play     := play
-  prefer := fun p => fun π0 π1 => prefer (π0 p) (π1 p)
+def UtilityGame.toOutcomeGame (G: UtilityGame P S U): OutcomeGame P S (P → U) := {
+  play := G.play
+  prefer := fun p => fun π0 π1 => G.prefer (π0 p) (π1 p)
 }
 
 -- One more further disillation: we don't need to explicitly reference the set of outcomes.
 -- Instead, the players can have preferences directly on strategy profiles.
 
-class Game where
-  player  : Type
-  strategy: Type
-  prefer: player → Prefer (player → strategy)
+class Game (P S: Type) where
+  prefer: P → Prefer (P → S)
 
 -- This is actually an equivalent representation because we can treat the strategy profiles themselves as outcomes.
-
-def OutcomeGame.toGame (game: OutcomeGame): Game := {
-  player   := player
-  strategy := strategy
-  prefer := fun p => fun π0 π1 => prefer p (play π0) (play π1)
+def OutcomeGame.toGame (G: OutcomeGame P S O): Game P S := {
+  prefer := fun p => fun π0 π1 => G.prefer p (G.play π0) (G.play π1)
 }
 
-def Game.toOutcomeGame (game: Game): OutcomeGame := {
-  player   := player
-  strategy := strategy
-  outcome  := player → strategy
-  play     := id
-  prefer   := prefer
+def UtilityGame.toGame (G: UtilityGame P S U): Game P S :=
+  G.toOutcomeGame.toGame
+
+def Game.toOutcomeGame (G: Game P S): OutcomeGame P S (P → S) := {
+  play   := id
+  prefer := G.prefer
 }
 
 
-
--- For the remainder, assume a game is fixed (and for technicality that its type of players has decidable equality).
-
-variable {game: Game} [DecidableEq game.player]
-
-open Game
 
 -- To define concepts like dominant strategies and best response, we will frequently use the following helper:
 -- given a function f: X → Y and a pair (x0, y0) we can "update" f to take the value f(x0) = y0.
 
-def update {X Y: Type} [DecidableEq X] (f: X → Y) (x0: X) (y0: Y): X → Y :=
-  fun x => if x = x0 then y0 else f x
+def update (π: P → S) (p0: P) (s0: S): P → S :=
+  fun p => if p = p0 then s0 else π p
 
 -- Given a fixed strategy profile, a strategy is called a player's 'best response'
 -- if no other strategy is better in that profile.
 
-def best_response (π: player → strategy) (p: player) (s: strategy): Prop :=
-  ∀ s', prefer p (update π p s') (update π p s)
+def best_response (G: Game P S) (π: P → S) (p: P) (s: S): Prop :=
+  ∀ s', G.prefer p (update π p s') (update π p s)
 
 -- A Nash equilibrium is a profile in which every player is using their best response.
 
-def nash_equilibrium (π: player → strategy): Prop :=
-  ∀ p, best_response π p (π p)
+def nash_equilibrium (G: Game P S) (π: P → S): Prop :=
+  ∀ p, best_response G π p (π p)
 
 -- For a fixed player, a strategy s 'dominates' another strategy s0 if it's always preferable to play s over s0.
 -- The strategy s is called 'dominant' if it dominates all other strategies.
 
-def dominates (p: player) (s0 s: strategy): Prop :=
-  ∀ π, prefer p (update π p s0) (update π p s)
+def dominates (G: Game P S) (p: P) (s0 s: S): Prop :=
+  ∀ π, G.prefer p (update π p s0) (update π p s)
 
-def dominant (p: player) (s: strategy): Prop :=
-  ∀ s0, dominates p s0 s
+def dominant (G: Game P S) (p: P) (s: S): Prop :=
+  ∀ s0, dominates G p s0 s
 
 -- Some immediately obvious theorems:
 -- A strategy is dominant iff. it is the best response to every profile (this is basically just by definition).
 
-theorem dominant_iff_best_response (p: player) (s: strategy): dominant p s ↔ ∀ π, best_response π p s := by
+theorem dominant_iff_best_response (G: Game P S) (p: P) (s: S): dominant G p s ↔ ∀ π, best_response G π p s := by
   exact forall_comm
 
 -- Any profile where every player is using a dominant strategy is a Nash equilibrium.
 
-theorem dominant_equilibrium (π: player → strategy) (h: ∀ p, dominant p (π p)): nash_equilibrium π := by
+theorem dominant_equilibrium (G: Game P S) (π: P → S) (h: ∀ p, dominant G p (π p)): nash_equilibrium G π := by
   intro p s
   exact h p s π
 
@@ -162,10 +134,7 @@ Player 0            |-------------------
 
 -/
 
-def PrisonerDilemma: UtilityGame := {
-  player   := Fin 2
-  strategy := Bool
-  utility  := Fin 4
+def PrisonerDilemma: UtilityGame (Fin 2) Bool (Fin 4) := {
   play := fun π => fun p => match (π 0, π 1) with
     -- neither defect
     | (false, false) => match p with
@@ -186,49 +155,45 @@ def PrisonerDilemma: UtilityGame := {
   prefer := fun u1 u2 => u1 ≤ u2
 }
 
-instance: DecidableEq PrisonerDilemma.toOutcomeGame.toGame.player :=
-  instDecidableEqFin 2
-
 -- In the prisoner's dilemma, the Nash equilibrium is for both to defect.
 
-example: @nash_equilibrium PrisonerDilemma.toOutcomeGame.toGame _ (fun _ => true) := by
+example: nash_equilibrium PrisonerDilemma.toGame (fun _ => true) := by
   intro p s
-  simp [PrisonerDilemma, UtilityGame.toOutcomeGame, OutcomeGame.toGame, update]
+  rw [PrisonerDilemma, UtilityGame.toGame, UtilityGame.toOutcomeGame, OutcomeGame.toGame]
+  simp [update]
   change Fin 2 at p
   change Bool at s
   match p with
   | 0 => cases s <;> simp
   | 1 => cases s <;> simp
 
-
-
 -- Given a preference, there is the associated "strict" preference
 -- and all the associated notions
 
-def strict {X: Type} (prefer:  Prefer X): Prefer X :=
-  fun x1 x2 => prefer x1 x2 ∧ ¬ prefer x2 x1
+def strict {U: Type} (prefer: Prefer U): Prefer U :=
+  fun u1 u2 => prefer u1 u2 ∧ ¬ prefer u2 u1
 
-def strict_best_response (π: player → strategy) (p: player) (s: strategy): Prop :=
-  ∀ s', s ≠ s' → strict (prefer p) (update π p s') (update π p s)
+def strict_best_response (G: Game P S) (π: P → S) (p: P) (s: S): Prop :=
+  ∀ s', s ≠ s' → strict (G.prefer p) (update π p s') (update π p s)
 
-def strict_nash_equilibrium (π: player → strategy): Prop :=
-  ∀ p, best_response π p (π p)
+def strict_nash_equilibrium (G: Game P S) (π: P → S): Prop :=
+  ∀ p, best_response G π p (π p)
 
-def strict_dominates (p: player) (s0 s: strategy): Prop :=
-  ∀ π, strict (prefer p) (update π p s0) (update π p s)
+def strict_dominates (G: Game P S) (p: P) (s0 s: S): Prop :=
+  ∀ π, strict (G.prefer p) (update π p s0) (update π p s)
 
-def strict_dominant (p: player) (s: strategy): Prop :=
-  ∀ s0, strict_dominates p s0 s
+def strict_dominant (G: Game P S) (p: P) (s: S): Prop :=
+  ∀ s0, strict_dominates G p s0 s
 
 -- When strict best response / Nash equilibria / dominant strategies exist, they are unique.
 
-theorem strict_best_response_unique (π: player → strategy) (p: player) (s s': strategy) (h1: strict_best_response π p s) (h2: strict_best_response π p s'): s = s' := by
+theorem strict_best_response_unique {G: Game P S} {π: P → S} {p: P} {s s': S} (h1: strict_best_response G π p s) (h2: strict_best_response G π p s'): s = s' := by
   sorry
 
-theorem strict_nash_equilibrium_unique (π π': player → strategy) (h1: strict_nash_equilibrium π) (h2: strict_nash_equilibrium π'): π = π' := by
+theorem strict_nash_equilibrium_unique {G: Game P S} {π π': P → S} (h1: strict_nash_equilibrium G π) (h2: strict_nash_equilibrium G π'): π = π' := by
   sorry
 
-theorem strict_dominant_unique (p: player) (s s': strategy) (h1: strict_dominant p s) (h2: strict_dominant p s'): s = s' := by
+theorem strict_dominant_unique {G: Game P S} {p: P} {s s': S} (h1: strict_dominant G p s) (h2: strict_dominant G p s'): s = s' := by
   sorry
 
 
@@ -243,21 +208,21 @@ def pareto {X I: Type} (prefer:  I → Prefer X): Prefer X :=
 -- It is Pareto dominant if it Pareto dominates every other strategy.
 -- Likewise for strict Pareto dominates.
 
-def pareto_dominates (π0 π1: player → strategy): Prop :=
-  pareto prefer π0 π1
+def pareto_dominates (G: Game P S) (π0 π1: P → S): Prop :=
+  pareto G.prefer π0 π1
 
-def pareto_dominant (π: player → strategy): Prop :=
-  ∀ π0, pareto_dominates π0 π
+def pareto_dominant (G: Game P S) (π: P → S): Prop :=
+  ∀ π0, pareto_dominates G π0 π
 
-def strict_pareto_dominates (π0 π1: player → strategy): Prop :=
-  strict (pareto prefer) π0 π1
+def strict_pareto_dominates (G: Game P S) (π0 π1: P → S): Prop :=
+  strict (pareto G.prefer) π0 π1
 
-def strict_pareto_dominant (π: player → strategy): Prop :=
-  ∀ π0, strict_pareto_dominates π0 π
+def strict_pareto_dominant (G: Game P S) (π: P → S): Prop :=
+  ∀ π0, strict_pareto_dominates G π0 π
 
 -- π1 strictly Pareto dominates π0 iff. everyone weakly prefer π1, and someone strongly prefers π1.
 
-theorem strict_pareto_dominates_iff (π0 π1: player → strategy): strict_pareto_dominates π0 π1 ↔ (∀ p, prefer p π0 π1) ∧ (∃ p, ¬ prefer p π1 π0) := by
+theorem strict_pareto_dominates_iff (G: Game P S) (π0 π1: P → S): strict_pareto_dominates G π0 π1 ↔ (∀ p, G.prefer p π0 π1) ∧ (∃ p, ¬ G.prefer p π1 π0) := by
   simp [strict_pareto_dominates]
   constructor
   · intro h
@@ -275,13 +240,13 @@ theorem strict_pareto_dominates_iff (π0 π1: player → strategy): strict_paret
 
 -- A profile is Pareto efficient if it is not strictly Pareto dominated.
 
-def pareto_efficient (π: player → strategy): Prop :=
-  ∀ π1, ¬ strict_pareto_dominates π π1
+def pareto_efficient (G: Game P S) (π: P → S): Prop :=
+  ∀ π1, ¬ strict_pareto_dominates G π π1
 
 -- A zero-sum game is one where preferences are flipped between different players.
 
-def zero_sum (game: Game): Prop :=
-  ∀ p1 p2 π1 π2, p1 ≠ p2 → (prefer p1 π1 π2 ↔ prefer p2 π2 π1)
+def zero_sum (G: Game P S): Prop :=
+  ∀ p1 p2 π1 π2, p1 ≠ p2 → (G.prefer p1 π1 π2 ↔ G.prefer p2 π2 π1)
 
 /-
 
@@ -298,7 +263,7 @@ Proof:
 
 -/
 
-theorem zero_sum_pareto_efficient (h1: zero_sum game) (h2: ∀ p, reflexive (prefer p)) (h3: ∀ p, antisymmetric (prefer p)) (h4: ∀ p: player, ∃ p': player, p ≠ p'): ∀ π: player → strategy, pareto_efficient π := by
+theorem zero_sum_pareto_efficient (G: Game P S) (h1: zero_sum G) (h2: ∀ p, reflexive (G.prefer p)) (h3: ∀ p, antisymmetric (G.prefer p)) (h4: ∀ p: P, ∃ p': P, p ≠ p'): ∀ π: P → S, pareto_efficient G π := by
   intro π π' h_strict
   simp_all [strict_pareto_dominates, strict, pareto]
   obtain ⟨p1, h_p1_not_prefer_π⟩ := h_strict.2
@@ -310,11 +275,8 @@ theorem zero_sum_pareto_efficient (h1: zero_sum game) (h2: ∀ p, reflexive (pre
   rw [π_eq_π'] at h_p1_not_prefer_π
   exact h_p1_not_prefer_π (h2 p1 π')
 
-end NormalFormGames
 
 
-
-section SequentialGames
 
 /-
 
@@ -331,76 +293,52 @@ For simplicity let's just assume the state variable already contains that inform
 
 -/
 
-class SeqGameStruct where
-  player: Type
-  state : Type
-  action: Type
-  move: (player → action) → state → state
+class SeqGameStruct (P E A: Type) where
+  move: (P → A) → E → E
 
-open SeqGameStruct
+variable {P E A: Type} [DecidableEq P]
 
-def SeqGameStruct.run (game: SeqGameStruct) (s: state) (π: player → state → action): Nat → state :=
+def SeqGameStruct.step (G: SeqGameStruct P E A) (π: P → E → A) (ε: E): E :=
+  G.move (fun p => π p ε) ε
+
+def SeqGameStruct.run (G: SeqGameStruct P E A) (ε: E) (π: P → E → A): Nat → E :=
   fun n => match n with
-  | Nat.zero => s
-  | Nat.succ previous =>
-    let s := game.run s π previous
-    move (fun p => π p s) s
+  | Nat.zero => ε
+  | Nat.succ prev =>
+    let s := run G ε π prev
+    G.step π s
 
-class SeqGame extends SeqGameStruct where
-  prefer: player → Prefer (Nat → state)
+class SeqGame (P E A: Type) extends SeqGameStruct P E A where
+  prefer: P → Prefer (Nat → E)
 
-variable {game: SeqGame} [DecidableEq game.player]
-
-def SeqGame.toOutcomeGame (game: SeqGame) (s: state): OutcomeGame := {
-  player   := player
-  strategy := state → action
-  outcome  := Nat → state
-  play := game.run s
-  prefer := prefer
+def SeqGame.toOutcomeGame (G: SeqGame P E A) (ε: E): OutcomeGame P (E → A) (Nat → E) := {
+  play := G.run ε
+  prefer := G.prefer
 }
 
-def subgame_perfect_equilibrium (π: player → state → action): Prop :=
-  ∀ s, @nash_equilibrium (game.toOutcomeGame s).toGame _ π
+def subgame_perfect_equilibrium (G: SeqGame P E A) (π: P → E → A): Prop :=
+  ∀ s, nash_equilibrium (G.toOutcomeGame s).toGame π
 
-class SeqUtilityGame extends SeqGameStruct where
-  utility: Type
-  svalue: player → state → utility
-  prefer: Prefer utility
+class SeqUtilityGame (P E A U: Type) extends SeqGameStruct P E A where
+  uvalue: P → E → U
+  prefer: Prefer U
 
-open SeqUtilityGame
+def hvalue (G: SeqUtilityGame P E A U) (σ: (Nat → U) → U) (p: P) (e: Nat → E): U :=
+  σ (fun t => G.uvalue p (e t))
 
-variable {game: SeqUtilityGame}
+def πvalue (G: SeqUtilityGame P E A U) (σ: (Nat → U) → U) (p: P) (π: P → E → A) (e: E): U :=
+  let seq := G.run e π
+  hvalue G σ p seq
 
-def seqvalue (σ: (Nat → utility) → utility) (p: player) (seq: Nat → state): utility :=
-  σ (fun t => svalue p (seq t))
-
-def profile_value (σ: (Nat → utility) → utility) (p: player) (π: player → state → action) (s: state): utility :=
-  let seq := run game.toSeqGameStruct s π
-  seqvalue σ p seq
-
-def SeqUtilityGame.toSeqOutcomeGame (game: SeqUtilityGame) (σ: (Nat → utility) → utility): SeqGame := {
-  player := player
-  state  := state
-  action := action
-  move   := move
-  prefer := fun p => fun seq0 seq1 => prefer (seqvalue σ p seq0) (seqvalue σ p seq1)
-}
-
-def SeqUtilityGame.toUtilityGame (game: SeqUtilityGame) (σ: (Nat → utility) → utility) (s: state): UtilityGame := {
-  player   := player
-  strategy := state → action
-  utility  := utility
+def SeqUtilityGame.toUtilityGame (G: SeqUtilityGame P E A U) (σ: (Nat → U) → U) (e: E): UtilityGame P (E → A) U := {
   play := fun π => fun p =>
-    let seq := run game.toSeqGameStruct s π
-    seqvalue σ p seq
-  prefer := prefer
+    let seq := G.run e π
+    hvalue G σ p seq
+  prefer := G.prefer
 }
 
-def SeqUtilityGame.toGame (game: SeqUtilityGame) (σ: (Nat → utility) → utility) (s: state): Game :=
-  (game.toUtilityGame σ s).toOutcomeGame.toGame
-
-def tail {X: Type} (x: Nat → X): Nat → X :=
-  fun t => x (t + 1)
+def tail {U: Type} (u: Nat → U): Nat → U :=
+  fun t => u (t + 1)
 
 /-
 
@@ -423,21 +361,21 @@ Theorem: if Up(s) + Vp(s0, π0) ≤ Up(s) + Vp(s1, π0) then p prefers π0 ≤ �
 
 -/
 
-def NF (game : SeqUtilityGame) (σ: (Nat → utility) → utility) (s : S) : Game P S :=
-  (game.toUtilityGame σ s).toOutcomeGame.toGame
+def SeqUtilityGame.NormalForm (G: SeqUtilityGame P E A U) (σ: (Nat → U) → U) (ε: E): Game P (E → A) :=
+  (G.toUtilityGame σ ε).toOutcomeGame.toGame
 
-example (game: SeqUtilityGame)
-  (σ: (Nat → utility) → utility)
-  (α: utility → utility → utility)
-  (h0: ∀ u: Nat → utility, α (u 0) (σ (tail u)) = σ u)
-  (s0: state) (p: player) (π0 π1: player → state → action)
-  (h1: prefer (α (svalue p s0) (profile_value σ p π0 (move (flip π0 s0) s0))) (α (svalue p s0) (profile_value σ p π1 (move (flip π1 s0) s0)))):
-  (game.toUtilityGame σ s0).toOutcomeGame.toGame.prefer p π0 π1 := by
-  simp_all [SeqUtilityGame.toUtilityGame, UtilityGame.toOutcomeGame, OutcomeGame.toGame]
-  simp_all [profile_value, seqvalue]
+example (G: SeqUtilityGame P E A U)
+  (σ: (Nat → U) → U)
+  (α: U → U → U)
+  (h0: ∀ u: Nat → U, α (u 0) (σ (tail u)) = σ u)
+  (ε: E) (p: P) (π0 π1: P → E → A)
+  (h1: G.prefer (α (G.uvalue p ε) (πvalue G σ p π0 (G.move (flip π0 ε) ε))) (α (G.uvalue p ε) (πvalue G σ p π1 (G.move (flip π1 ε) ε)))):
+  (G.NormalForm σ ε).prefer p π0 π1 := by
+  simp_all [SeqUtilityGame.NormalForm, SeqUtilityGame.toUtilityGame, UtilityGame.toOutcomeGame, OutcomeGame.toGame]
+  simp_all [πvalue, hvalue]
   rw [←h0]
   rw (config := {occs := .pos [2]}) [←h0]
-  simp_all [run]
+  simp_all [SeqGameStruct.run]
   -- obnoxious lemma
   have {X Y: Type} {a b c d x: X} {f: X → X → Y} {g: Y → Y → Prop} (h1: g (f x a) (f x b)) (h2: a = c) (h3: b = d): g (f x c) (f x d) := by
     rw [←h2, ←h3]
@@ -445,9 +383,23 @@ example (game: SeqUtilityGame)
   apply this h1 <;> (
     congr
     ext t
-    simp [tail, run]
+    simp [tail, SeqGameStruct.run]
     congr
     induction t with
-    | zero => simp [run]; rfl
-    | succ previous ih => simp [run, ih]
+    | zero => simp [SeqGameStruct.run]; rfl
+    | succ previous ih => simp [SeqGameStruct.run, ih]
   )
+
+-- Let G be a sequential utility game with a utility aggregator σ.
+-- An arbitrary function v: P → E → U is called a valuation if
+-- maximizing v always leads to preferable trajectories.
+def valuation (G: SeqUtilityGame P E A U) (σ: (Nat → U) → U) (v: P → E → U): Prop :=
+  ∀ p s π0 π1, G.prefer (πvalue G σ p π0 s) (πvalue G σ p π1 s) ↔ G.prefer (v p (G.step π0 s)) (v p (G.step π1 s))
+
+example (G: SeqUtilityGame P E A U) (σ: (Nat → U) → U) (v: P → E → U) (hv: valuation G σ v)
+(α: U → U → U) (p: P)
+  (h0: ∀ u: Nat → U, α (u 0) (σ (tail u)) = σ u):
+  ∀ ε, ∀ π, G.prefer (α (G.uvalue p ε) (v p (G.step π ε))) (v p ε) := by
+  intro ε π
+
+  exact?
