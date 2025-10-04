@@ -75,10 +75,7 @@ def UtilityGame.toOutcomeGame (game: UtilityGame): OutcomeGame := {
   strategy := strategy
   outcome  := player → utility
   play     := play
-  prefer := fun p => fun π0 π1 =>
-    let u0 := π0 p -- the utility he gets from the first outcome
-    let u1 := π1 p -- the utility he gets from the second outcome
-    prefer u0 u1 -- he prefers the second profile iff. u0 ≤ u1
+  prefer := fun p => fun π0 π1 => prefer (π0 p) (π1 p)
 }
 
 -- One more further disillation: we don't need to explicitly reference the set of outcomes.
@@ -312,11 +309,11 @@ Proof:
 theorem zero_sum_pareto_efficient (h1: zero_sum game) (h2: ∀ p, reflexive (prefer p)) (h3: ∀ p, antisymmetric (prefer p)) (h4: ∀ p: player, ∃ p': player, p ≠ p'): ∀ π: player → strategy, pareto_efficient π := by
   intro π π' h_strict
   simp_all [strict_pareto_dominates, strict, pareto]
-  obtain ⟨p1, p1_not_pref_π⟩ := h_strict.2
-  obtain ⟨p2, p1_neq_p2⟩ := h4 p1
-  have p1_pref_π' := h_strict.1 p1
-  have p2_pref_π' := h_strict.1 p2
-  have p2_pref_π := (h1 _ _ π π' p1_neq_p2).mp p1_pref_π'
-  have π_eq_π' := h3 p2 _ _ p2_pref_π' p2_pref_π
-  rw [π_eq_π'] at p1_not_pref_π
-  exact p1_not_pref_π (h2 p1 π')
+  obtain ⟨p1, h_p1_not_prefer_π⟩ := h_strict.2
+  obtain ⟨p2, h_p1_neq_p2⟩ := h4 p1
+  have h_p1_prefer_π' := h_strict.1 p1
+  have h_p2_prefer_π' := h_strict.1 p2
+  have h_p2_prefer_π := (h1 _ _ π π' h_p1_neq_p2).mp h_p1_prefer_π'
+  have π_eq_π' := h3 p2 _ _ h_p2_prefer_π' h_p2_prefer_π
+  rw [π_eq_π'] at h_p1_not_prefer_π
+  exact h_p1_not_prefer_π (h2 p1 π')
