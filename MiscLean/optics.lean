@@ -131,4 +131,3 @@ def CoPara.comp (f: CoPara S A) (g: CoPara A X): CoPara S X := {
     let (z, θ₂) := g.map y
     (z, (θ₁, θ₂))
 }
-
